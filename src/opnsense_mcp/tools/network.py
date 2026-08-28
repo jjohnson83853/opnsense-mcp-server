@@ -7,10 +7,10 @@ from typing import Any
 from fastmcp import Context
 
 from opnsense_mcp.api_client import OPNsenseAPIError
-from opnsense_mcp.server import get_api, mcp
+from opnsense_mcp.server import READ_ONLY, get_api, mcp
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_interface_stats(ctx: Context) -> dict[str, Any]:
     """Get per-interface traffic statistics (bytes in/out, packets, errors).
 
@@ -22,7 +22,7 @@ async def opn_interface_stats(ctx: Context) -> dict[str, Any]:
     return await api.get("interface.statistics")
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_arp_table(ctx: Context) -> dict[str, Any]:
     """Get the ARP table showing IP-to-MAC address mappings.
 
@@ -34,7 +34,7 @@ async def opn_arp_table(ctx: Context) -> dict[str, Any]:
     return await api.get("interface.arp")
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_ndp_table(ctx: Context) -> dict[str, Any]:
     """Get the NDP table showing IPv6-to-MAC address mappings.
 
@@ -47,7 +47,7 @@ async def opn_ndp_table(ctx: Context) -> dict[str, Any]:
     return await api.get("interface.ndp")
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_ipv6_status(ctx: Context) -> dict[str, Any]:
     """Get IPv6 configuration and address status for all interfaces.
 
@@ -161,7 +161,7 @@ async def opn_ipv6_status(ctx: Context) -> dict[str, Any]:
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_list_static_routes(
     ctx: Context,
     search: str = "",

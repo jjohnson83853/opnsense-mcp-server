@@ -6,10 +6,10 @@ from typing import Any
 
 from fastmcp import Context
 
-from opnsense_mcp.server import get_api, mcp
+from opnsense_mcp.server import READ_ONLY, get_api, mcp
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_wireguard_status(ctx: Context) -> dict[str, Any]:
     """Get WireGuard VPN tunnel and peer status.
 
@@ -22,7 +22,7 @@ async def opn_wireguard_status(ctx: Context) -> dict[str, Any]:
     return await api.get("wireguard.service.show")
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_ipsec_status(ctx: Context) -> dict[str, Any]:
     """Get IPsec VPN tunnel status (IKE and ESP phases).
 
@@ -44,7 +44,7 @@ async def opn_ipsec_status(ctx: Context) -> dict[str, Any]:
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_openvpn_status(ctx: Context) -> dict[str, Any]:
     """Get OpenVPN connection status (instances, sessions, routes).
 

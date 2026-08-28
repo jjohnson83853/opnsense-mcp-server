@@ -9,7 +9,7 @@ from fastmcp import Context
 
 from opnsense_mcp import __version__
 from opnsense_mcp.config_cache import SENSITIVE_TAGS
-from opnsense_mcp.server import get_api, get_config_cache, get_savepoint_manager, mcp
+from opnsense_mcp.server import READ_ONLY, get_api, get_config_cache, get_savepoint_manager, mcp
 
 
 def _strip_sensitive_data(xml_text: str) -> str:
@@ -27,7 +27,7 @@ def _strip_sensitive_data(xml_text: str) -> str:
     return ET.tostring(root, encoding="unicode", xml_declaration=True)
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_system_status(ctx: Context) -> dict[str, Any]:
     """Get OPNsense system status including firmware version and product info.
 
@@ -40,7 +40,7 @@ async def opn_system_status(ctx: Context) -> dict[str, Any]:
     return await api.get("firmware.status")
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_list_services(
     ctx: Context,
     search: str = "",
@@ -59,7 +59,7 @@ async def opn_list_services(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_gateway_status(ctx: Context) -> dict[str, Any]:
     """Get gateway status including dpinger health checks.
 
@@ -71,7 +71,7 @@ async def opn_gateway_status(ctx: Context) -> dict[str, Any]:
     return await api.get("gateway.status")
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_download_config(
     ctx: Context,
     include_sensitive: bool = False,
@@ -98,7 +98,7 @@ async def opn_download_config(
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_scan_config(ctx: Context, force: bool = False) -> dict[str, Any]:
     """Scan the OPNsense configuration and build a cached inventory.
 
@@ -118,7 +118,7 @@ async def opn_scan_config(ctx: Context, force: bool = False) -> dict[str, Any]:
     return await cache.load(api, force=force)
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_get_config_section(
     ctx: Context,
     section: str,
@@ -154,7 +154,7 @@ async def opn_get_config_section(
     return result
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_mcp_info(ctx: Context) -> dict[str, Any]:
     """Get MCP server version and runtime configuration.
 

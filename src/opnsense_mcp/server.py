@@ -10,11 +10,19 @@ from typing import Any
 
 from fastmcp import Context, FastMCP
 from fastmcp.server.lifespan import lifespan
+from mcp.types import ToolAnnotations
 
 from opnsense_mcp import __version__
 from opnsense_mcp.api_client import OPNsenseAPI, SavepointManager
 from opnsense_mcp.config import load_config
 from opnsense_mcp.config_cache import ConfigCache
+
+# Shared tool annotations (MCP spec hints) so clients can distinguish safe
+# reads from mutating/destructive writes without parsing descriptions.
+READ_ONLY = ToolAnnotations(readOnlyHint=True, idempotentHint=True)
+WRITE_CREATE = ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=False)
+WRITE_UPDATE = ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=True)
+WRITE_DESTRUCTIVE = ToolAnnotations(readOnlyHint=False, destructiveHint=True, idempotentHint=True)
 
 
 @lifespan

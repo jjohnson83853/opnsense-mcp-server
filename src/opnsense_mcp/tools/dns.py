@@ -7,7 +7,7 @@ from typing import Any
 
 from fastmcp import Context
 
-from opnsense_mcp.server import get_api, get_config_cache, mcp
+from opnsense_mcp.server import READ_ONLY, WRITE_CREATE, WRITE_DESTRUCTIVE, WRITE_UPDATE, get_api, get_config_cache, mcp
 
 _HOSTNAME_RE = re.compile(r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?$")
 _DOMAIN_RE = re.compile(
@@ -20,7 +20,7 @@ _IP_RE = re.compile(
 )
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_list_dns_overrides(
     ctx: Context,
     search: str = "",
@@ -39,7 +39,7 @@ async def opn_list_dns_overrides(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_list_dns_forwards(
     ctx: Context,
     search: str = "",
@@ -58,7 +58,7 @@ async def opn_list_dns_forwards(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_dns_stats(ctx: Context) -> dict[str, Any]:
     """Get Unbound DNS resolver statistics (queries, cache hits, uptime).
 
@@ -70,7 +70,7 @@ async def opn_dns_stats(ctx: Context) -> dict[str, Any]:
     return await api.get("unbound.stats")
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_UPDATE)
 async def opn_reconfigure_unbound(ctx: Context) -> dict[str, Any]:
     """Apply pending Unbound DNS resolver configuration changes.
 
@@ -89,7 +89,7 @@ async def opn_reconfigure_unbound(ctx: Context) -> dict[str, Any]:
     return {"status": result.get("status", "unknown"), "service": "unbound"}
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_CREATE)
 async def opn_add_dns_override(
     ctx: Context,
     hostname: str,
@@ -150,7 +150,7 @@ async def opn_add_dns_override(
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_UPDATE)
 async def opn_update_dns_override(
     ctx: Context,
     uuid: str,
@@ -213,7 +213,7 @@ async def opn_update_dns_override(
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_DESTRUCTIVE)
 async def opn_delete_dns_override(
     ctx: Context,
     uuid: str,
@@ -284,7 +284,7 @@ async def _apply_dnsbl(ctx: Context) -> dict[str, str]:
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_list_dnsbl(
     ctx: Context,
     search: str = "",
@@ -304,7 +304,7 @@ async def opn_list_dnsbl(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_get_dnsbl(
     ctx: Context,
     uuid: str,
@@ -356,7 +356,7 @@ async def opn_get_dnsbl(
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_UPDATE)
 async def opn_set_dnsbl(
     ctx: Context,
     uuid: str,
@@ -434,7 +434,7 @@ async def opn_set_dnsbl(
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_UPDATE)
 async def opn_add_dnsbl_allowlist(
     ctx: Context,
     uuid: str,
@@ -491,7 +491,7 @@ async def opn_add_dnsbl_allowlist(
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_UPDATE)
 async def opn_remove_dnsbl_allowlist(
     ctx: Context,
     uuid: str,
@@ -547,7 +547,7 @@ async def opn_remove_dnsbl_allowlist(
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_UPDATE)
 async def opn_update_dnsbl(ctx: Context) -> dict[str, Any]:
     """Reload DNSBL blocklist files and restart Unbound to apply them.
 

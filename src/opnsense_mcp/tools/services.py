@@ -6,14 +6,14 @@ from typing import Any
 
 from fastmcp import Context
 
-from opnsense_mcp.server import get_api, get_config_cache, mcp
+from opnsense_mcp.server import READ_ONLY, WRITE_CREATE, WRITE_DESTRUCTIVE, WRITE_UPDATE, get_api, get_config_cache, mcp
 
 _SENSITIVE_FIELDS = frozenset({"password", "%password"})
 
 # --- Dynamic DNS ---
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_list_ddns_accounts(
     ctx: Context,
     search: str = "",
@@ -47,7 +47,7 @@ async def opn_list_ddns_accounts(
     return result
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_CREATE)
 async def opn_add_ddns_account(
     ctx: Context,
     service: str,
@@ -118,7 +118,7 @@ async def opn_add_ddns_account(
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_UPDATE)
 async def opn_update_ddns_account(
     ctx: Context,
     uuid: str,
@@ -186,7 +186,7 @@ async def opn_update_ddns_account(
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_DESTRUCTIVE)
 async def opn_delete_ddns_account(
     ctx: Context,
     uuid: str,
@@ -210,7 +210,7 @@ async def opn_delete_ddns_account(
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_UPDATE)
 async def opn_reconfigure_ddclient(ctx: Context) -> dict[str, Any]:
     """Apply pending Dynamic DNS configuration changes.
 
@@ -230,7 +230,7 @@ async def opn_reconfigure_ddclient(ctx: Context) -> dict[str, Any]:
     return {"status": result.get("status", "unknown"), "service": "ddclient"}
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_list_acme_certs(
     ctx: Context,
     search: str = "",
@@ -250,7 +250,7 @@ async def opn_list_acme_certs(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_list_cron_jobs(
     ctx: Context,
     search: str = "",
@@ -269,7 +269,7 @@ async def opn_list_cron_jobs(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_crowdsec_status(ctx: Context) -> dict[str, Any]:
     """Get CrowdSec security engine status and active decisions summary.
 
@@ -297,7 +297,7 @@ async def opn_crowdsec_status(ctx: Context) -> dict[str, Any]:
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_crowdsec_alerts(
     ctx: Context,
     search: str = "",
@@ -320,7 +320,7 @@ async def opn_crowdsec_alerts(
 # --- mDNS Repeater ---
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_mdns_repeater_status(ctx: Context) -> dict[str, Any]:
     """Get mDNS Repeater service status and configuration.
 
@@ -348,7 +348,7 @@ async def opn_mdns_repeater_status(ctx: Context) -> dict[str, Any]:
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_UPDATE)
 async def opn_configure_mdns_repeater(
     ctx: Context,
     enabled: bool = True,

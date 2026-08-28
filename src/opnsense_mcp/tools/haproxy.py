@@ -7,7 +7,7 @@ from typing import Any
 from fastmcp import Context
 
 from opnsense_mcp.api_client import ENDPOINT_REGISTRY
-from opnsense_mcp.server import get_api, get_config_cache, mcp
+from opnsense_mcp.server import READ_ONLY, WRITE_CREATE, WRITE_DESTRUCTIVE, WRITE_UPDATE, get_api, get_config_cache, mcp
 
 # --- Resource type mapping: plural -> singular ---
 _HAPROXY_RESOURCES: dict[str, str] = {
@@ -43,7 +43,7 @@ def _validate_resource_type(resource_type: str) -> str | None:
     return _HAPROXY_RESOURCES.get(resource_type)
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_haproxy_status(ctx: Context) -> dict[str, Any]:
     """Get HAProxy load balancer status and backend health.
 
@@ -56,7 +56,7 @@ async def opn_haproxy_status(ctx: Context) -> dict[str, Any]:
     return await api.get("haproxy.service.status")
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_UPDATE)
 async def opn_reconfigure_haproxy(ctx: Context) -> dict[str, Any]:
     """Apply pending HAProxy load balancer configuration changes.
 
@@ -78,7 +78,7 @@ async def opn_reconfigure_haproxy(ctx: Context) -> dict[str, Any]:
     return {"status": result.get("status", "unknown"), "service": "haproxy"}
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_haproxy_search(
     ctx: Context,
     resource_type: str,
@@ -116,7 +116,7 @@ async def opn_haproxy_search(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_haproxy_get(
     ctx: Context,
     resource_type: str,
@@ -143,7 +143,7 @@ async def opn_haproxy_get(
     return await api.get(logical, path_suffix=uuid)
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_CREATE)
 async def opn_haproxy_add(
     ctx: Context,
     resource_type: str,
@@ -195,7 +195,7 @@ async def opn_haproxy_add(
     return result
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_UPDATE)
 async def opn_haproxy_update(
     ctx: Context,
     resource_type: str,
@@ -233,7 +233,7 @@ async def opn_haproxy_update(
     return result
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_DESTRUCTIVE)
 async def opn_haproxy_delete(
     ctx: Context,
     resource_type: str,
@@ -266,7 +266,7 @@ async def opn_haproxy_delete(
     return result
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_haproxy_configtest(ctx: Context) -> dict[str, Any]:
     """Validate HAProxy configuration syntax before applying.
 

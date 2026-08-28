@@ -6,10 +6,10 @@ from typing import Any
 
 from fastmcp import Context
 
-from opnsense_mcp.server import get_api, get_config_cache, mcp
+from opnsense_mcp.server import READ_ONLY, WRITE_CREATE, WRITE_DESTRUCTIVE, WRITE_UPDATE, get_api, get_config_cache, mcp
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_list_dhcp_leases(ctx: Context) -> dict[str, Any]:
     """List current DHCPv4 leases from the ISC DHCP server (legacy).
 
@@ -22,7 +22,7 @@ async def opn_list_dhcp_leases(ctx: Context) -> dict[str, Any]:
     return await api.get("dhcpv4.leases.search")
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_list_kea_leases(
     ctx: Context,
     search: str = "",
@@ -42,7 +42,7 @@ async def opn_list_kea_leases(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_list_dnsmasq_leases(
     ctx: Context,
     search: str = "",
@@ -66,7 +66,7 @@ async def opn_list_dnsmasq_leases(
 # --- Dnsmasq DHCP Range Management ---
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_list_dnsmasq_ranges(
     ctx: Context,
     search: str = "",
@@ -92,7 +92,7 @@ async def opn_list_dnsmasq_ranges(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_CREATE)
 async def opn_add_dnsmasq_range(
     ctx: Context,
     interface: str,
@@ -169,7 +169,7 @@ async def opn_add_dnsmasq_range(
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_UPDATE)
 async def opn_update_dnsmasq_range(
     ctx: Context,
     uuid: str,
@@ -237,7 +237,7 @@ async def opn_update_dnsmasq_range(
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_DESTRUCTIVE)
 async def opn_delete_dnsmasq_range(
     ctx: Context,
     uuid: str,
@@ -261,7 +261,7 @@ async def opn_delete_dnsmasq_range(
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_UPDATE)
 async def opn_reconfigure_dnsmasq(ctx: Context) -> dict[str, Any]:
     """Apply pending dnsmasq DNS/DHCP configuration changes.
 

@@ -7,7 +7,7 @@ from typing import Any
 
 from fastmcp import Context
 
-from opnsense_mcp.server import get_api, mcp
+from opnsense_mcp.server import READ_ONLY, get_api, mcp
 
 _MAX_PING_POLLS = 30
 _PING_POLL_INTERVAL = 1.0
@@ -23,7 +23,7 @@ def _validate_hostname(value: str) -> str | None:
     return None
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_ping(
     ctx: Context,
     host: str,
@@ -79,7 +79,7 @@ async def opn_ping(
     return {"error": f"Ping to {host} timed out waiting for results", "host": host}
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_traceroute(
     ctx: Context,
     host: str,
@@ -114,7 +114,7 @@ async def opn_traceroute(
     return {"host": host, **result}
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_dns_lookup(
     ctx: Context,
     hostname: str,
@@ -139,7 +139,7 @@ async def opn_dns_lookup(
     return {"hostname": hostname, **result}
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_pf_states(
     ctx: Context,
     search: str = "",

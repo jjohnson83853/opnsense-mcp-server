@@ -16,7 +16,7 @@ from fastmcp import Context
 
 from opnsense_mcp.api_client import OPNsenseAPI, OPNsenseAPIError
 from opnsense_mcp.config_cache import ConfigCache
-from opnsense_mcp.server import get_api, get_config_cache, mcp
+from opnsense_mcp.server import READ_ONLY, get_api, get_config_cache, mcp
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -1444,7 +1444,7 @@ async def _check_gateways(
 # ---------------------------------------------------------------------------
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_security_audit(ctx: Context) -> dict[str, Any]:
     """Run a comprehensive security audit of the OPNsense firewall.
 

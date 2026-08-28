@@ -8,7 +8,16 @@ from typing import Any
 from fastmcp import Context
 
 from opnsense_mcp.api_client import OPNsenseAPIError
-from opnsense_mcp.server import get_api, get_config_cache, get_savepoint_manager, mcp
+from opnsense_mcp.server import (
+    READ_ONLY,
+    WRITE_CREATE,
+    WRITE_DESTRUCTIVE,
+    WRITE_UPDATE,
+    get_api,
+    get_config_cache,
+    get_savepoint_manager,
+    mcp,
+)
 
 _VALID_ACTIONS = frozenset({"pass", "block", "reject"})
 _VALID_DIRECTIONS = frozenset({"in", "out"})
@@ -34,7 +43,7 @@ def _failed_message(revision: str, what: str) -> str:
     return f"{what[:1].upper()}{what[1:]} failed. No changes were applied."
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_list_firewall_rules(
     ctx: Context,
     search: str = "",
@@ -57,7 +66,7 @@ async def opn_list_firewall_rules(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_list_firewall_aliases(
     ctx: Context,
     search: str = "",
@@ -76,7 +85,7 @@ async def opn_list_firewall_aliases(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_firewall_log(
     ctx: Context,
     source_ip: str = "",
@@ -115,7 +124,7 @@ async def opn_firewall_log(
     return {"entries": limited, "total": len(rows)}
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_UPDATE)
 async def opn_confirm_changes(ctx: Context, revision: str) -> dict[str, Any]:
     """Confirm pending firewall changes, cancelling the 60-second auto-rollback.
 
@@ -131,7 +140,7 @@ async def opn_confirm_changes(ctx: Context, revision: str) -> dict[str, Any]:
     return await mgr.confirm(revision)
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_CREATE)
 async def opn_toggle_firewall_rule(
     ctx: Context,
     uuid: str,
@@ -141,12 +150,9 @@ async def opn_toggle_firewall_rule(
     Use this when you need to temporarily disable a rule for testing or re-enable
     a previously disabled rule. The toggle flips the current state.
 
-    Savepoint protection applies on OPNsense < 26.7 only: there changes auto-revert
-    in 60 seconds unless confirmed with opn_confirm_changes. OPNsense 26.7 removed
-    the savepoint API upstream, so on 26.7+ changes apply immediately and are NOT
-    rolled back automatically.
-    Check opn_mcp_info first: if 'savepoint_support' is false, take a config backup
-    with opn_download_config before changing rules that could lock you out.
+    Savepoint-protected where supported (opn_confirm_changes has full details);
+    check opn_mcp_info's savepoint_support and back up via opn_download_config
+    first when it's false.
     Use opn_list_firewall_rules first to find the UUID of the rule.
     Returns: dict with 'revision' (str) for confirming and 'uuid' (str).
     """
@@ -170,7 +176,7 @@ async def opn_toggle_firewall_rule(
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_CREATE)
 async def opn_add_firewall_rule(
     ctx: Context,
     action: str = "pass",
@@ -195,12 +201,9 @@ async def opn_add_firewall_rule(
 
     Use this when you need to add a firewall rule.
 
-    Savepoint protection applies on OPNsense < 26.7 only: there changes auto-revert
-    in 60 seconds unless confirmed with opn_confirm_changes. OPNsense 26.7 removed
-    the savepoint API upstream, so on 26.7+ changes apply immediately and are NOT
-    rolled back automatically.
-    Check opn_mcp_info first: if 'savepoint_support' is false, take a config backup
-    with opn_download_config before changing rules that could lock you out.
+    Savepoint-protected where supported (opn_confirm_changes has full details);
+    check opn_mcp_info's savepoint_support and back up via opn_download_config
+    first when it's false.
 
     IMPORTANT: This creates MVC rules (Settings > Firewall > Automation), not
     legacy GUI rules.
@@ -286,7 +289,7 @@ async def opn_add_firewall_rule(
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_DESTRUCTIVE)
 async def opn_delete_firewall_rule(
     ctx: Context,
     uuid: str,
@@ -295,12 +298,9 @@ async def opn_delete_firewall_rule(
 
     Use this when you need to remove an existing MVC firewall rule.
 
-    Savepoint protection applies on OPNsense < 26.7 only: there changes auto-revert
-    in 60 seconds unless confirmed with opn_confirm_changes. OPNsense 26.7 removed
-    the savepoint API upstream, so on 26.7+ changes apply immediately and are NOT
-    rolled back automatically.
-    Check opn_mcp_info first: if 'savepoint_support' is false, take a config backup
-    with opn_download_config before changing rules that could lock you out.
+    Savepoint-protected where supported (opn_confirm_changes has full details);
+    check opn_mcp_info's savepoint_support and back up via opn_download_config
+    first when it's false.
     Use opn_list_firewall_rules first to find the UUID of the rule to delete.
     Returns: dict with 'revision' (str) for confirming and 'result' (str).
     """
@@ -325,7 +325,7 @@ async def opn_delete_firewall_rule(
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_UPDATE)
 async def opn_update_firewall_rule(
     ctx: Context,
     uuid: str,
@@ -354,12 +354,9 @@ async def opn_update_firewall_rule(
     protocol, ports, or other properties. Only the parameters you provide are
     changed; all other settings are preserved.
 
-    Savepoint protection applies on OPNsense < 26.7 only: there changes auto-revert
-    in 60 seconds unless confirmed with opn_confirm_changes. OPNsense 26.7 removed
-    the savepoint API upstream, so on 26.7+ changes apply immediately and are NOT
-    rolled back automatically.
-    Check opn_mcp_info first: if 'savepoint_support' is false, take a config backup
-    with opn_download_config before changing rules that could lock you out.
+    Savepoint-protected where supported (opn_confirm_changes has full details);
+    check opn_mcp_info's savepoint_support and back up via opn_download_config
+    first when it's false.
     Use opn_list_firewall_rules first to find the UUID.
 
     Parameters:
@@ -455,7 +452,7 @@ async def opn_update_firewall_rule(
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_CREATE)
 async def opn_add_alias(
     ctx: Context,
     name: str,
@@ -513,7 +510,7 @@ async def opn_add_alias(
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_UPDATE)
 async def opn_update_alias(
     ctx: Context,
     uuid: str,
@@ -580,7 +577,7 @@ async def opn_update_alias(
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_DESTRUCTIVE)
 async def opn_delete_alias(
     ctx: Context,
     uuid: str,
@@ -607,7 +604,7 @@ async def opn_delete_alias(
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_CREATE)
 async def opn_toggle_alias(
     ctx: Context,
     uuid: str,
@@ -631,7 +628,7 @@ async def opn_toggle_alias(
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_list_nat_rules(
     ctx: Context,
     search: str = "",
@@ -655,7 +652,7 @@ async def opn_list_nat_rules(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_CREATE)
 async def opn_add_nat_rule(
     ctx: Context,
     destination_port: str = "",
@@ -668,12 +665,9 @@ async def opn_add_nat_rule(
     """Create a NAT port forwarding rule with savepoint protection where supported.
 
     Use this when you need to forward an external port to an internal host.
-    Savepoint protection applies on OPNsense < 26.7 only: there changes auto-revert
-    in 60 seconds unless confirmed with opn_confirm_changes. OPNsense 26.7 removed
-    the savepoint API upstream, so on 26.7+ changes apply immediately and are NOT
-    rolled back automatically.
-    Check opn_mcp_info first: if 'savepoint_support' is false, take a config backup
-    with opn_download_config before changing rules that could lock you out.
+    Savepoint-protected where supported (opn_confirm_changes has full details);
+    check opn_mcp_info's savepoint_support and back up via opn_download_config
+    first when it's false.
 
     Parameters:
     - destination_port: external port to forward (e.g. '8080', '3000-3010') — required
@@ -729,7 +723,7 @@ async def opn_add_nat_rule(
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_UPDATE)
 async def opn_update_nat_rule(
     ctx: Context,
     uuid: str,
@@ -747,12 +741,9 @@ async def opn_update_nat_rule(
     of a NAT rule. Only the parameters you provide are changed; all other
     settings are preserved.
 
-    Savepoint protection applies on OPNsense < 26.7 only: there changes auto-revert
-    in 60 seconds unless confirmed with opn_confirm_changes. OPNsense 26.7 removed
-    the savepoint API upstream, so on 26.7+ changes apply immediately and are NOT
-    rolled back automatically.
-    Check opn_mcp_info first: if 'savepoint_support' is false, take a config backup
-    with opn_download_config before changing rules that could lock you out.
+    Savepoint-protected where supported (opn_confirm_changes has full details);
+    check opn_mcp_info's savepoint_support and back up via opn_download_config
+    first when it's false.
     Use opn_list_nat_rules first to find the UUID.
 
     Parameters:
@@ -811,7 +802,7 @@ async def opn_update_nat_rule(
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_DESTRUCTIVE)
 async def opn_delete_nat_rule(
     ctx: Context,
     uuid: str,
@@ -820,12 +811,9 @@ async def opn_delete_nat_rule(
 
     Use this when you need to remove an existing NAT rule.
 
-    Savepoint protection applies on OPNsense < 26.7 only: there changes auto-revert
-    in 60 seconds unless confirmed with opn_confirm_changes. OPNsense 26.7 removed
-    the savepoint API upstream, so on 26.7+ changes apply immediately and are NOT
-    rolled back automatically.
-    Check opn_mcp_info first: if 'savepoint_support' is false, take a config backup
-    with opn_download_config before changing rules that could lock you out.
+    Savepoint-protected where supported (opn_confirm_changes has full details);
+    check opn_mcp_info's savepoint_support and back up via opn_download_config
+    first when it's false.
     Use opn_list_nat_rules first to find the UUID of the rule to delete.
     Returns: dict with 'revision' (str) for confirming and 'result' (str).
     """
@@ -850,7 +838,7 @@ async def opn_delete_nat_rule(
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def opn_list_firewall_categories(
     ctx: Context,
     search: str = "",
@@ -869,7 +857,7 @@ async def opn_list_firewall_categories(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_CREATE)
 async def opn_add_firewall_category(
     ctx: Context,
     name: str,
@@ -909,7 +897,7 @@ async def opn_add_firewall_category(
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_DESTRUCTIVE)
 async def opn_delete_firewall_category(
     ctx: Context,
     uuid: str,
@@ -921,12 +909,9 @@ async def opn_delete_firewall_category(
     categories and opn_set_rule_categories to reassign rules first.
 
     System default categories (auto=1) cannot be deleted.
-    Savepoint protection applies on OPNsense < 26.7 only: there changes auto-revert
-    in 60 seconds unless confirmed with opn_confirm_changes. OPNsense 26.7 removed
-    the savepoint API upstream, so on 26.7+ changes apply immediately and are NOT
-    rolled back automatically.
-    Check opn_mcp_info first: if 'savepoint_support' is false, take a config backup
-    with opn_download_config before changing rules that could lock you out.
+    Savepoint-protected where supported (opn_confirm_changes has full details);
+    check opn_mcp_info's savepoint_support and back up via opn_download_config
+    first when it's false.
     Returns: dict with 'revision' (str) for confirming and 'result' (str).
     """
     api = get_api(ctx)
@@ -950,7 +935,7 @@ async def opn_delete_firewall_category(
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_UPDATE)
 async def opn_set_rule_categories(
     ctx: Context,
     uuid: str,
@@ -959,12 +944,9 @@ async def opn_set_rule_categories(
     """Assign categories to a firewall rule by UUID with savepoint protection where supported.
 
     Use this when you need to categorize or re-categorize a firewall rule.
-    Savepoint protection applies on OPNsense < 26.7 only: there changes auto-revert
-    in 60 seconds unless confirmed with opn_confirm_changes. OPNsense 26.7 removed
-    the savepoint API upstream, so on 26.7+ changes apply immediately and are NOT
-    rolled back automatically.
-    Check opn_mcp_info first: if 'savepoint_support' is false, take a config backup
-    with opn_download_config before changing rules that could lock you out.
+    Savepoint-protected where supported (opn_confirm_changes has full details);
+    check opn_mcp_info's savepoint_support and back up via opn_download_config
+    first when it's false.
 
     Parameters:
     - uuid: the firewall rule UUID (from opn_list_firewall_rules)
@@ -1032,7 +1014,7 @@ _ICMPV6_ESSENTIAL_RULES: list[dict[str, str]] = [
 ]
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE_CREATE)
 async def opn_add_icmpv6_rules(
     ctx: Context,
     interface: str = "lan",
@@ -1050,12 +1032,9 @@ async def opn_add_icmpv6_rules(
     4. NDP Router Advertisement (link-local -> all-nodes multicast)
     5. ICMPv6 Echo (ping6) inbound
 
-    Savepoint protection applies on OPNsense < 26.7 only: there changes auto-revert
-    in 60 seconds unless confirmed with opn_confirm_changes. OPNsense 26.7 removed
-    the savepoint API upstream, so on 26.7+ changes apply immediately and are NOT
-    rolled back automatically.
-    Check opn_mcp_info first: if 'savepoint_support' is false, take a config backup
-    with opn_download_config before changing rules that could lock you out.
+    Savepoint-protected where supported (opn_confirm_changes has full details);
+    check opn_mcp_info's savepoint_support and back up via opn_download_config
+    first when it's false.
 
     Parameters:
     - interface: target interface (e.g. 'lan', 'opt1', 'opt2')
