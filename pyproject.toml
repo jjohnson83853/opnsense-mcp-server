@@ -18,7 +18,8 @@ classifiers = [
     "Topic :: Security",
 ]
 dependencies = [
-    "fastmcp>=2.0",
+    "fastmcp>=4,<5",
+    "httpx>=0.28.1",
 ]
 
 [project.urls]
