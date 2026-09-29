@@ -113,7 +113,7 @@ The following endpoints are **permanently blocked** at the API client level and 
 - Test both camelCase and snake_case endpoint variants for version compatibility
 
 ```bash
-# Run all tests
+# Run all offline tests (coverage gate is enforced by pytest configuration)
 pytest -v
 
 # Run tests for a specific domain
